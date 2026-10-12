@@ -36,7 +36,8 @@ namespace CoroScheduler
 
 			std::suspend_always initial_suspend() noexcept;
 			std::suspend_always final_suspend() noexcept;
-			std::suspend_always yield_value(std::shared_ptr<Promise> promise);
+			std::suspend_always yield_value(Task&& task);
+			std::suspend_always yield_value(std::shared_ptr<Promise> yielded_promise);
 
 			void return_void() noexcept;
 			void unhandled_exception() noexcept;
@@ -126,7 +127,7 @@ namespace CoroScheduler
 		void AddPromise(std::shared_ptr<Promise> promise);
 		void AddTask(Task&& task);
 		void Run();
-		bool IsDone();
+		bool IsDone() const;
 
 	protected:
 

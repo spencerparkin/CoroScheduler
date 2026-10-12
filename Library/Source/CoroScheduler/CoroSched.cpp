@@ -66,9 +66,15 @@ std::suspend_always Task::promise_type::final_suspend() noexcept
 	return {};
 }
 
-std::suspend_always Task::promise_type::yield_value(std::shared_ptr<Promise> promise)
+std::suspend_always Task::promise_type::yield_value(Task&& task)
 {
-	this->promise = promise;
+	this->promise = std::make_shared<CoroPromise>(std::move(task));
+	return {};
+}
+
+std::suspend_always Task::promise_type::yield_value(std::shared_ptr<Promise> yielded_promise)
+{
+	this->promise = yielded_promise;
 	return {};
 }
 
@@ -224,7 +230,7 @@ void Scheduler::Run()
 	}
 }
 
-bool Scheduler::IsDone()
+bool Scheduler::IsDone() const
 {
 	return this->promiseArray.size() == 0;
 }
