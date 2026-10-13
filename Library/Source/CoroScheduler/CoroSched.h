@@ -27,7 +27,7 @@ namespace CoroScheduler
 		void operator=(Task&& task) noexcept;
 
 		void Run();
-		bool IsDone();
+		bool IsDone() const;
 
 		class promise_type
 		{
@@ -66,7 +66,7 @@ namespace CoroScheduler
 		virtual ~Promise();
 
 		virtual void Run() = 0;
-		virtual bool IsDone() = 0;
+		virtual bool IsDone() const = 0;
 
 	private:
 		int lastRunTick;
@@ -84,14 +84,14 @@ namespace CoroScheduler
 		virtual ~CoroPromise();
 
 		virtual void Run() override;
-		virtual bool IsDone() override;
+		virtual bool IsDone() const override;
 
 	protected:
 		Task task;
 	};
 
 	/**
-	 * This promise lets you wait until all or any of the stores promises are done.
+	 * This promise lets you wait until all or any of the stored promises are done.
 	 */
 	class MultiWaitPromise : public Promise
 	{
@@ -107,7 +107,7 @@ namespace CoroScheduler
 		virtual ~MultiWaitPromise();
 
 		virtual void Run() override;
-		virtual bool IsDone() override;
+		virtual bool IsDone() const override;
 
 	public:
 		std::vector<std::shared_ptr<Promise>> promiseArray;
@@ -118,7 +118,7 @@ namespace CoroScheduler
 	 * This is where we pump all the promises.  The user should make an instance of this
 	 * and then call its @ref Run method once per iteration loop of their program.
 	 */
-	class Scheduler
+	class Scheduler : public Promise
 	{
 	public:
 		Scheduler();
@@ -126,8 +126,9 @@ namespace CoroScheduler
 
 		void AddPromise(std::shared_ptr<Promise> promise);
 		void AddTask(Task&& task);
-		void Run();
-		bool IsDone() const;
+		
+		virtual void Run() override;
+		virtual bool IsDone() const override;
 
 	protected:
 

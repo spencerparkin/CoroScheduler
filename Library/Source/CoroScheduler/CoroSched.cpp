@@ -40,7 +40,7 @@ void Task::Run()
 		this->coroHandle.resume();
 }
 
-bool Task::IsDone()
+bool Task::IsDone() const
 {
 	Promise* promise = this->coroHandle.promise().promise.get();
 	if (promise && !promise->IsDone())
@@ -112,7 +112,7 @@ CoroPromise::CoroPromise(Task&& task) : task(std::move(task))
 	this->task.Run();
 }
 
-bool CoroPromise::IsDone()
+bool CoroPromise::IsDone() const
 {
 	return this->task.IsDone();
 }
@@ -150,7 +150,7 @@ MultiWaitPromise::MultiWaitPromise(Mode mode, std::vector<std::shared_ptr<Promis
 	}
 }
 
-/*virtual*/ bool MultiWaitPromise::IsDone()
+/*virtual*/ bool MultiWaitPromise::IsDone() const
 {
 	int doneCount = 0;
 
@@ -192,7 +192,7 @@ void Scheduler::AddTask(Task&& task)
 	this->AddPromise(promise);
 }
 
-void Scheduler::Run()
+/*virtual*/ void Scheduler::Run()
 {
 	this->tickCount++;
 
@@ -230,7 +230,7 @@ void Scheduler::Run()
 	}
 }
 
-bool Scheduler::IsDone() const
+/*virtual*/ bool Scheduler::IsDone() const
 {
 	return this->promiseArray.size() == 0;
 }

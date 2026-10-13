@@ -26,7 +26,7 @@ public:
 		this->ran = true;
 	}
 
-	virtual bool IsDone() override
+	virtual bool IsDone() const override
 	{
 		return this->ran;
 	}
