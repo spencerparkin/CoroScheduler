@@ -131,7 +131,7 @@ MultiWaitPromise::MultiWaitPromise(Mode mode, std::vector<std::shared_ptr<Promis
 	for (int i = 0; i < (int)this->promiseArray.size(); i++)
 	{
 		std::shared_ptr<Promise> promise = this->promiseArray[i];
-		if (!promise->IsDone())
+		if (promise.get() && !promise->IsDone())
 			this->promiseArray.push_back(promise);
 	}
 }
@@ -145,7 +145,7 @@ MultiWaitPromise::MultiWaitPromise(Mode mode, std::vector<std::shared_ptr<Promis
 	for (int i = 0; i < (int)this->promiseArray.size(); i++)
 	{
 		Promise* promise = this->promiseArray[i].get();
-		if (!promise->IsDone())
+		if (promise && !promise->IsDone())
 			promise->Run();
 	}
 }
@@ -157,7 +157,7 @@ MultiWaitPromise::MultiWaitPromise(Mode mode, std::vector<std::shared_ptr<Promis
 	for (int i = 0; i < (int)this->promiseArray.size(); i++)
 	{
 		Promise* promise = this->promiseArray[i].get();
-		if (promise->IsDone())
+		if (!promise || promise->IsDone())
 			doneCount++;
 	}
 
