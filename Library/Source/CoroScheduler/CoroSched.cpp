@@ -127,7 +127,7 @@ MultiWaitPromise::MultiWaitPromise(Mode mode)
 MultiWaitPromise::MultiWaitPromise(Mode mode, std::vector<std::shared_ptr<Promise>> promiseArray)
 {
 	this->mode = mode;
-	
+
 	for (int i = 0; i < (int)this->promiseArray.size(); i++)
 	{
 		std::shared_ptr<Promise> promise = this->promiseArray[i];
@@ -181,56 +181,54 @@ Scheduler::Scheduler()
 {
 }
 
-void Scheduler::AddPromise(std::shared_ptr<Promise> promise)
+void Scheduler::AddPromise(const std::string& promiseName, std::shared_ptr<Promise> promise)
 {
-	this->promiseArray.push_back(promise);
+	this->promiseMap.insert(std::pair(promiseName, promise));
 }
 
-void Scheduler::AddTask(Task&& task)
+void Scheduler::AddTask(const std::string& promiseName, Task&& task)
 {
 	auto promise = std::make_shared<CoroPromise>(std::move(task));
-	this->AddPromise(promise);
+	this->AddPromise(promiseName, promise);
+}
+
+bool Scheduler::IsPromiseStillPending(const std::string& promiseName)
+{
+	return this->promiseMap.find(promiseName) != this->promiseMap.end();
 }
 
 /*virtual*/ void Scheduler::Run()
 {
 	this->tickCount++;
 
-	int j = -1;
+	std::string oldestPromiseName;
 	int largestDelta = 0;
+	Promise* oldestPromise = nullptr;
 
 	// A priority queue would be more efficient here, but this is fine for now.
-	for (int i = 0; i < (int)this->promiseArray.size(); i++)
+	for (auto pair : this->promiseMap)
 	{
-		Promise* promise = this->promiseArray[i].get();
+		Promise* promise = pair.second.get();
 		int delta = this->tickCount - promise->lastRunTick;
 		if (delta > largestDelta)
 		{
 			largestDelta = delta;
-			j = i;
+			oldestPromise = promise;
+			oldestPromiseName = pair.first;
 		}
 	}
 
-	if (j == -1)
+	if (!oldestPromise)
 		return;
 
-	Promise* promise = this->promiseArray[j].get();
-	promise->lastRunTick = this->tickCount;
-	promise->Run();
+	oldestPromise->lastRunTick = this->tickCount;
+	oldestPromise->Run();
 
-	if (promise->IsDone())
-	{
-		this->promiseArray[j] = nullptr;
-
-		int k = (int)this->promiseArray.size() - 1;
-		if (j != k)
-			this->promiseArray[j] = this->promiseArray[k];
-
-		this->promiseArray.pop_back();
-	}
+	if (oldestPromise->IsDone())
+		this->promiseMap.erase(oldestPromiseName);
 }
 
 /*virtual*/ bool Scheduler::IsDone() const
 {
-	return this->promiseArray.size() == 0;
+	return this->promiseMap.size() == 0;
 }

@@ -66,7 +66,7 @@ int main(int argc, char** argv)
 {
 	Scheduler scheduler;
 
-	scheduler.AddTask(CoroA());
+	scheduler.AddTask("TaskA", CoroA());
 
 	while (!scheduler.IsDone())
 		scheduler.Run();

@@ -3,6 +3,9 @@
 #include <coroutine>
 #include <memory>
 #include <vector>
+#include <functional>
+#include <string>
+#include <unordered_map>
 
 namespace CoroScheduler
 {
@@ -57,7 +60,7 @@ namespace CoroScheduler
 	 * the promise can be stored in the coroutine that yields, or the regular
 	 * routine that added it to the scheduler.
 	 */
-	class Promise
+	class Promise : public std::enable_shared_from_this<Promise>
 	{
 		friend class Scheduler;
 
@@ -124,15 +127,17 @@ namespace CoroScheduler
 		Scheduler();
 		virtual ~Scheduler();
 
-		void AddPromise(std::shared_ptr<Promise> promise);
-		void AddTask(Task&& task);
-		
+		void AddPromise(const std::string& promiseName, std::shared_ptr<Promise> promise);
+		void AddTask(const std::string& promiseName, Task&& task);
+
+		bool IsPromiseStillPending(const std::string& promiseName);
+
 		virtual void Run() override;
 		virtual bool IsDone() const override;
 
 	protected:
 
-		std::vector<std::shared_ptr<Promise>> promiseArray;
+		std::unordered_map<std::string, std::shared_ptr<Promise>> promiseMap;
 		int tickCount;
 	};
 }
